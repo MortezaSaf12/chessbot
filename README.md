@@ -4,3 +4,6 @@ Chess bot som jag byggt för att träna på att spela chess och utvecklas inom o
 
 Källor:
 https://www.chessprogramming.org/Simplified_Evaluation_Function
+https://www.chess.com/blog/the_real_greco/
+engines-navigating-the-tree-ab-pruning-minimax
+
