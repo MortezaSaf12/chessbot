@@ -125,4 +125,134 @@ const PST_EG = {
   k: PST_KING_EG,
 };
 
-module.exports = { PIECE_VALUES, PST_MG, PST_EG };
+// ---------- Helpers ----------
+
+/*Convert a square string (e.g. "e4") to a 0-63 index, from White's perspective (a8=0, h1=63).*/
+function squareIndex(sq) {
+  const file = sq.charCodeAt(0) - 97; // a=0 … h=7
+  const rank = parseInt(sq[1], 10);   // 1-8
+  return (8 - rank) * 8 + file;
+}
+
+/*Mirror an index vertically for Black's perspective*/
+function mirrorIndex(idx) {
+  const row = Math.floor(idx / 8);
+  const col = idx % 8;
+  return (7 - row) * 8 + col;
+}
+
+
+function endgameWeight(board) {
+  const MAX_MATERIAL = 2 * (320 + 330 + 500 + 500 + 900); // ~5780
+  let material = 0;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const piece = board[r][c];
+      if (piece && piece.type !== 'p' && piece.type !== 'k') {
+        material += PIECE_VALUES[piece.type];
+      }
+    }
+  }
+  return 1 - Math.min(material / MAX_MATERIAL, 1);
+}
+
+// Evaluation
+
+/**
+ * Evaluate the position (White's perspective). 
+ * Positive = White is better, Negative = Black is better.
+ * @param {import('chess.js').Chess} game
+ * @returns {number} centipawn score
+ */
+function evaluate(game) {
+
+  if (game.isCheckmate()) {
+    return game.turn() === 'w' ? -99999 : 99999;
+  }
+  if (game.isStalemate() || game.isDraw()) {
+    return 0;
+  }
+
+  const board = game.board(); // 8×8 array
+  const egW = endgameWeight(board);
+
+  let score = 0;
+  let whiteBishops = 0;
+  let blackBishops = 0;
+
+  // Per-file pawn tracking for doubled/isolated detection
+  const whitePawnsPerFile = new Array(8).fill(0);
+  const blackPawnsPerFile = new Array(8).fill(0);
+
+  // Material + PST
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const piece = board[r][c];
+      if (!piece) continue;
+
+      const idx = r * 8 + c;           // already White-perspective index
+      const type = piece.type;
+      const value = PIECE_VALUES[type];
+
+      if (piece.color === 'w') {
+        score += value;
+        // PST bonus
+        if (type === 'k') {
+          const mgVal = PST_MG.k[idx];
+          const egVal = PST_EG.k[idx];
+          score += mgVal + (egVal - mgVal) * egW;
+        } else {
+          score += PST_MG[type][idx];
+        }
+        if (type === 'b') whiteBishops++;
+        if (type === 'p') whitePawnsPerFile[c]++;
+      } else {
+        score -= value;
+        // For Black pieces
+        const mIdx = mirrorIndex(idx);
+        if (type === 'k') {
+          const mgVal = PST_MG.k[mIdx];
+          const egVal = PST_EG.k[mIdx];
+          score -= mgVal + (egVal - mgVal) * egW;
+        } else {
+          score -= PST_MG[type][mIdx];
+        }
+        if (type === 'b') blackBishops++;
+        if (type === 'p') blackPawnsPerFile[c]++;
+      }
+    }
+  }
+
+  // Bishop pair bonus
+  if (whiteBishops >= 2) score += 50;
+  if (blackBishops >= 2) score -= 50;
+
+  // Penalty for pawn structure
+  for (let f = 0; f < 8; f++) {
+    // Doubled pawns on same file
+    if (whitePawnsPerFile[f] > 1) score -= 20 * (whitePawnsPerFile[f] - 1);
+    if (blackPawnsPerFile[f] > 1) score += 20 * (blackPawnsPerFile[f] - 1);
+
+    // Isolated pawns
+    const wHasAdj = (f > 0 && whitePawnsPerFile[f - 1] > 0) ||
+                    (f < 7 && whitePawnsPerFile[f + 1] > 0);
+    if (whitePawnsPerFile[f] > 0 && !wHasAdj) score -= 15 * whitePawnsPerFile[f];
+
+    const bHasAdj = (f > 0 && blackPawnsPerFile[f - 1] > 0) ||
+                    (f < 7 && blackPawnsPerFile[f + 1] > 0);
+    if (blackPawnsPerFile[f] > 0 && !bHasAdj) score += 15 * blackPawnsPerFile[f];
+  }
+
+  // Mobility bonus
+  const currentMoves = game.moves().length;
+  const mobilityBonus = currentMoves * 2; // 2cp per legal move
+  if (game.turn() === 'w') {
+    score += mobilityBonus;
+  } else {
+    score -= mobilityBonus;
+  }
+
+  return score;
+}
+
+module.exports = { PIECE_VALUES, PST_MG, PST_EG, evaluate };
