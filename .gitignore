@@ -1,0 +1,6 @@
+.env
+tasks
+todo.md
+node_modules/
+.DS_Store
+dist//build/
