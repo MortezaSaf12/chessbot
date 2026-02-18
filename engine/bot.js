@@ -42,36 +42,36 @@ function orderMoves(game, moves, ttBestMove) {
 }
 
 /**
+ * Evaluate from the side-to-move's perspective (negamax convention).
+ */
+function sideToMoveEval(game) {
+  return game.turn() === 'w' ? evaluate(game) : -evaluate(game);
+}
+
+/**
  * Quiescence search — resolve captures so the static eval isn't on a noisy position.
  * Scores are returned from the side-to-move's perspective (negamax convention).
  */
-function quiescence(game, alpha, beta, evalFn) {
-  const standPat = game.turn() === 'w' ? evalFn(game) : -evalFn(game);
+function quiescence(game, alpha, beta, evaluate, depth = 0) {
+    const standPat = evaluate(game);
 
-  if (standPat >= beta) return beta;
-  if (standPat > alpha) alpha = standPat;
+    if (standPat >= beta) return beta;
+    if (alpha < standPat) alpha = standPat;
+    if (depth >= 8) return alpha; // limit quiescence depth
 
-  const moves = game.moves({ verbose: true });
-  const captures = moves.filter(m => m.captured);
+    const captures = game.moves({ verbose: true }).filter(m => m.captured);
+    const orderedCaptures = orderMoves(game, captures, null);
 
-  const victimVal = { p: 1, n: 3, b: 3, r: 5, q: 9 };
-  const attackerVal = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 10 };
-  captures.sort((a, b) => {
-    const sa = victimVal[a.captured] * 10 - attackerVal[a.piece];
-    const sb = victimVal[b.captured] * 10 - attackerVal[b.piece];
-    return sb - sa;
-  });
+    for (const move of orderedCaptures) {
+        game.move(move);
+        const score = -quiescence(game, -beta, -alpha, evaluate, depth + 1);
+        game.undo();
 
-  for (const move of captures) {
-    game.move(move);
-    const score = -quiescence(game, -beta, -alpha, evalFn);
-    game.undo();
+        if (score >= beta) return beta;
+        if (score > alpha) alpha = score;
+    }
 
-    if (score >= beta) return beta;
-    if (score > alpha) alpha = score;
-  }
-
-  return alpha;
+    return alpha;
 }
 
 /**
@@ -91,7 +91,7 @@ function negamax(game, depth, alpha, beta) {
 
     // 2. Leaf node: quiescence search
     if (depth <= 0) {
-        return quiescence(game, alpha, beta, evaluate);
+        return quiescence(game, alpha, beta, sideToMoveEval);
     }
 
     // 3. Game over check
@@ -162,6 +162,8 @@ function getBestMove(game, maxDepth = 6, timeLimitMs = 15000) {
 
         let currentBestMove = null;
         let currentBestScore = -Infinity;
+        let alpha = -Infinity;
+        const beta = Infinity;
 
         for (const move of orderedMoves) {
             if (Date.now() - startTime > timeLimitMs) {
@@ -170,13 +172,14 @@ function getBestMove(game, maxDepth = 6, timeLimitMs = 15000) {
             }
 
             game.move(move);
-            const score = -negamax(game, depth - 1, -Infinity, Infinity);
+            const score = -negamax(game, depth - 1, -beta, -alpha);
             game.undo();
 
             if (score > currentBestScore) {
                 currentBestScore = score;
                 currentBestMove = move;
             }
+            alpha = Math.max(alpha, score);
         }
 
         if (currentBestMove) {
