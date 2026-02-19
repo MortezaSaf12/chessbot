@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <header>
+        <h1>♚ CHESS ENGINE</h1>
+        <div class="controls">
+            <label>Depth:
+                <select id="difficulty">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6" selected>6</option>
+                </select>
+            </label>
+            <button id="new-game-btn">New Game</button>
+        </div>
+    </header>
+
+    <main>
+        <aside id="history-panel">
+            <h2>Moves</h2>
+            <div id="move-list"></div>
+        </aside>
+
+        <section id="board-section">
+            <div id="board"></div>
+            <div id="file-labels">
+                <span>a</span><span>b</span><span>c</span><span>d</span>
+                <span>e</span><span>f</span><span>g</span><span>h</span>
+            </div>
+            <div id="thinking" class="hidden">
+                <div class="spinner"></div><span>Thinking…</span>
+            </div>
+        </section>
+
+        <aside id="info-panel">
+            <div id="captured"></div>
+            <div id="commentary-box">
+                <h3>💬 Commentary</h3>
+                <p id="commentary-text"></p>
+            </div>
+            <div id="status-box">
+                <p id="game-status">Your turn</p>
+                <p id="eval-display"></p>
+            </div>
+        </aside>
+    </main>
+
+    <div id="promotion-modal" class="hidden">
+        <div class="modal">
+            <h3>Promote to:</h3>
+            <div id="promotion-choices"></div>
+        </div>
+    </div>
+
+    <div id="gameover-modal" class="hidden">
+        <div class="modal">
+            <h2 id="gameover-title"></h2>
+            <p id="gameover-message"></p>
+            <button id="gameover-btn">New Game</button>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/board.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
