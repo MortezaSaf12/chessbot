@@ -5,7 +5,7 @@ let model = null;
 
 if (process.env.GEMINI_API_KEY) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini free tier as of 2026/02/18" });
+    model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 }
 
 /**
