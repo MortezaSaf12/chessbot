@@ -1,6 +1,5 @@
 .env
-tasks
-todo.md
+tasks/
 node_modules/
 .DS_Store
 dist//build/
