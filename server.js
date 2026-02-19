@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const { Chess } = require("chess.js");
 const { getBestMove } = require("./engine/bot");
+const { evaluate } = require("./engine/evaluation");
 const { getCommentary } = require("./llm/gemini");
 
 const app = express();
@@ -17,13 +18,18 @@ let maxDepth = 6;
 
 /** Build a standard game-status object. */
 function gameStatus() {
-    if (!game.isGameOver()) return { gameOver: false, result: null };
+    const inCheck = game.isCheck();
+    const eval_ = evaluate(game);
+
+    if (!game.isGameOver()) {
+        return { gameOver: false, result: null, inCheck, evaluation: eval_ };
+    }
 
     let result = "draw";
     if (game.isCheckmate()) {
         result = game.turn() === "w" ? "black_wins" : "white_wins";
     }
-    return { gameOver: true, result };
+    return { gameOver: true, result, inCheck, evaluation: eval_ };
 }
 
 /** Current full-move number (1-based). */
