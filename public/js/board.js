@@ -40,7 +40,10 @@ const Board = (() => {
             const sq = document.createElement("div");
             sq.className = "square " + ((r + c) % 2 === 0 ? "light" : "dark");
             sq.dataset.square = String.fromCharCode(97 + c) + (8 - r); // e.g. "e4"
-            if (pieces[i]) sq.textContent = PIECE_UNICODE[pieces[i]];
+            if (pieces[i]) {
+                sq.textContent = PIECE_UNICODE[pieces[i]];
+                sq.classList.add(pieces[i][0] === "w" ? "wp" : "bp");
+            }
             sq.addEventListener("click", () => {
                 if (onSquareClick) onSquareClick(sq.dataset.square, pieces[i]);
             });
