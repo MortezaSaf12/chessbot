@@ -8,7 +8,6 @@ const App = (() => {
     let moveHistory = []; // track moves ourselves (load() wipes Chess history)
 
     const moveListEl = document.getElementById("move-list");
-    const commentaryEl = document.getElementById("commentary-text");
     const statusEl = document.getElementById("game-status");
     const evalEl = document.getElementById("eval-display");
     const capturedEl = document.getElementById("captured");
@@ -53,7 +52,6 @@ const App = (() => {
         moveHistory = [];
         moveListEl.innerHTML = "";
         capturedEl.textContent = "";
-        commentaryEl.textContent = "";
         renderAll({ fen: data.fen, inCheck: false, evaluation: 0, gameOver: false });
         statusEl.textContent = "Your turn";
     }
@@ -138,7 +136,6 @@ const App = (() => {
             if (data.playerMove) moveHistory.push(data.playerMove);
             if (data.botMove) moveHistory.push(data.botMove);
             rebuildMoveList();
-            updateCommentary(data.commentary);
             updateEval(data.evaluation);
             updateCaptured();
 
@@ -188,10 +185,6 @@ const App = (() => {
             moveListEl.appendChild(row);
         }
         moveListEl.scrollTop = moveListEl.scrollHeight;
-    }
-
-    function updateCommentary(text) {
-        commentaryEl.textContent = text || "";
     }
 
     function updateEval(ev) {

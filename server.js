@@ -3,7 +3,6 @@ const express = require("express");
 const { Chess } = require("chess.js");
 const { getBestMove } = require("./engine/bot");
 const { evaluate } = require("./engine/evaluation");
-const { getCommentary } = require("./llm/gemini");
 
 const app = express();
 app.use(express.json());
@@ -94,7 +93,6 @@ app.post("/api/move", async (req, res) => {
             playerMove: playerMove.san,
             botMove: null,
             fen: game.fen(),
-            commentary: "",
             ...statusAfterPlayer,
         });
     }
@@ -105,21 +103,13 @@ app.post("/api/move", async (req, res) => {
     const botPlayed = game.move(botMoveObj);
     console.log(`Bot played: ${botPlayed.san}`);
 
-    // 4. Get commentary (non-blocking — empty string on failure)
-    const commentary = await getCommentary(
-        game.fen(),
-        botPlayed.san,
-        String(moveNumber())
-    );
-
-    // 5. Check if game ended after bot's move
+    // 4. Check if game ended after bot's move
     const statusAfterBot = gameStatus();
 
     res.json({
         playerMove: playerMove.san,
         botMove: botPlayed.san,
         fen: game.fen(),
-        commentary,
         ...statusAfterBot,
     });
 });
