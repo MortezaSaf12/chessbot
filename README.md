@@ -15,5 +15,5 @@ Detta är den minimala, fungerande versionen av projektet:
 
 ## Källor och Inspiration
 * [Chessprogramming Wiki - Simplified Evaluation Function](https://www.chessprogramming.org/Simplified_Evaluation_Function)
-* [The Real Greco](https://www.chess.com/blog/the_real_greco/)
+* [The Real Greco]([https://www.chess.com/blog/the_real_greco/](https://www.chess.com/blog/the_real_greco/engines-navigating-the-tree-ab-pruning-minimax))
 * Algoritmer: Minimax, Alpha-Beta pruning, Negamax.
