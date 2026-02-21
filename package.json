@@ -1,15 +1,20 @@
 {
   "name": "chessbot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Chess engine with Negamax search, alpha-beta pruning, and a web-based GUI",
   "main": "server.js",
   "scripts": {
-    "test": "node Test/test-all.js",
+    "test": "node test/test-all.js",
     "dev": "node --watch server.js",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "chess",
+    "engine",
+    "negamax",
+    "alpha-beta"
+  ],
+  "author": "MortezaSaf12",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

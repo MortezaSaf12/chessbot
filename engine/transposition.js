@@ -1,9 +1,6 @@
-/* According to (Chessprogram wiki), A transposition table stores previous search results in a hash table 
-to avoid redundant calculations when the same chess position arises via different move sequences.
-
-Utilizing Zobrist hashing, significantly reducing search time and cutting off unused.
-
-*/
+// Transposition table with Zobrist hashing.
+// Caches previously searched positions to skip redundant work
+// when the same board state is reached via different move orders.
 
 // Initialize random numbers for each piece on each square
 const ZOBRIST_KEYS = {};

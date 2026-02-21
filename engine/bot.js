@@ -3,55 +3,47 @@ const { TranspositionTable, hashBoard } = require('./transposition');
 
 const tt = new TranspositionTable(64);
 
-/**
- * Order moves so alpha-beta prunes more aggressively.
- * TT best move is searched first, then captures/promotions.
- */
+// Order moves for better pruning: TT best move first, then captures (MVV-LVA), promotions.
 function orderMoves(game, moves, ttBestMove) {
-  moves.sort((a, b) => {
-    let scoreA = 0;
-    let scoreB = 0;
+    moves.sort((a, b) => {
+        let scoreA = 0;
+        let scoreB = 0;
 
-    // Promotions first
-    if (a.promotion) scoreA += 900;
-    if (b.promotion) scoreB += 900;
+        // Promotions first
+        if (a.promotion) scoreA += 900;
+        if (b.promotion) scoreB += 900;
 
-    // Captures scored by MVV-LVA (Most Valuable Victim – Least Valuable Attacker)
-    const victimVal = { p: 1, n: 3, b: 3, r: 5, q: 9 };
-    const attackerVal = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 10 };
-    if (a.captured) scoreA += victimVal[a.captured] * 10 - attackerVal[a.piece];
-    if (b.captured) scoreB += victimVal[b.captured] * 10 - attackerVal[b.piece];
+        // Captures scored by MVV-LVA (Most Valuable Victim – Least Valuable Attacker)
+        const victimVal = { p: 1, n: 3, b: 3, r: 5, q: 9 };
+        const attackerVal = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 10 };
+        if (a.captured) scoreA += victimVal[a.captured] * 10 - attackerVal[a.piece];
+        if (b.captured) scoreB += victimVal[b.captured] * 10 - attackerVal[b.piece];
 
-    // Checks get a small boost
-    if (a.san && a.san.includes('+')) scoreA += 5;
-    if (b.san && b.san.includes('+')) scoreB += 5;
+        // Checks get a small boost
+        if (a.san && a.san.includes('+')) scoreA += 5;
+        if (b.san && b.san.includes('+')) scoreB += 5;
 
-    return scoreB - scoreA; // higher score first
-  });
+        return scoreB - scoreA; // higher score first
+    });
 
-  // If the TT gave us a best move, put it first
-  if (ttBestMove) {
-    const idx = moves.findIndex(m => m.from === ttBestMove.from && m.to === ttBestMove.to);
-    if (idx > 0) {
-      const [hit] = moves.splice(idx, 1);
-      moves.unshift(hit);
+    // If the TT gave us a best move, put it first
+    if (ttBestMove) {
+        const idx = moves.findIndex(m => m.from === ttBestMove.from && m.to === ttBestMove.to);
+        if (idx > 0) {
+            const [hit] = moves.splice(idx, 1);
+            moves.unshift(hit);
+        }
     }
-  }
 
-  return moves;
+    return moves;
 }
 
-/**
- * Evaluate from the side-to-move's perspective (negamax convention).
- */
+
 function sideToMoveEval(game) {
-  return game.turn() === 'w' ? evaluate(game) : -evaluate(game);
+    return game.turn() === 'w' ? evaluate(game) : -evaluate(game);
 }
 
-/**
- * Quiescence search — resolve captures so the static eval isn't on a noisy position.
- * Scores are returned from the side-to-move's perspective (negamax convention).
- */
+// Quiescence search — keep searching captures to avoid noisy evaluations.
 function quiescence(game, alpha, beta, evaluate, depth = 0) {
     const standPat = evaluate(game);
 
@@ -74,10 +66,7 @@ function quiescence(game, alpha, beta, evaluate, depth = 0) {
     return alpha;
 }
 
-/**
- * Negamax search with alpha-beta pruning and transposition table.
- * Always returns the score from the side-to-move's perspective.
- */
+// Negamax + alpha-beta with TT lookup.
 function negamax(game, depth, alpha, beta) {
     const originalAlpha = alpha;
 
@@ -140,14 +129,7 @@ function negamax(game, depth, alpha, beta) {
     return bestScore;
 }
 
-/**
- * Find the best move using iterative deepening with time management.
- *
- * @param {import('chess.js').Chess} game       - current position
- * @param {number} [maxDepth=6]                 - maximum search depth
- * @param {number} [timeLimitMs=15000]          - hard time limit in ms
- * @returns {{ move: string, score: number }}   - best move (verbose object) and score
- */
+// Iterative deepening with time management.
 function getBestMove(game, maxDepth = 6, timeLimitMs = 15000) {
     tt.clear();
 

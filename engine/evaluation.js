@@ -1,24 +1,12 @@
-/**
- * Material piece values (centipawn scale)
- */
+// Centipawn values
 const PIECE_VALUES = {
-  p: 100,    // Pawn
-  n: 320,    // Knight
-  b: 330,    // Bishop
-  r: 500,    // Rook
-  q: 900,    // Queen
-  k: 20000,  // King
+  p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000,
 };
 
-/**
- * Piece-Square Tables (PST)
- *
- * Indexed from White's perspective, rank 8 (index 0) to rank 1 (index 63).
- * For Black, the table is mirrored vertically.
- */
+// Piece-Square Tables — indexed from White's perspective (a8=0, h1=63).
+// Black uses a vertically mirrored index.
 
-// PAWN
-// Reasoning: Center control (d4/e4), advance bonus, slight penalty for a/h pawns
+// Pawns: reward center control and advancement
 const PST_PAWN_MG = [
   0, 0, 0, 0, 0, 0, 0, 0,
   50, 50, 50, 50, 50, 50, 50, 50,
@@ -30,8 +18,7 @@ const PST_PAWN_MG = [
   0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
-//KNIGHT
-// Strong in center, terrible on rim
+// Knights: strong in center, weak on rim
 const PST_KNIGHT_MG = [
   -50, -40, -30, -30, -30, -30, -40, -50,
   -40, -20, 0, 0, 0, 0, -20, -40,
@@ -43,8 +30,7 @@ const PST_KNIGHT_MG = [
   -50, -40, -30, -30, -30, -30, -40, -50,
 ];
 
-//BISHOP
-// Reasoning: Open diagonals, small center bonus, avoid corners/edges
+// Bishops
 const PST_BISHOP_MG = [
   -20, -10, -10, -10, -10, -10, -10, -20,
   -10, 0, 0, 0, 0, 0, 0, -10,
@@ -56,8 +42,7 @@ const PST_BISHOP_MG = [
   -20, -10, -10, -10, -10, -10, -10, -20,
 ];
 
-//ROOK
-// Reasoning: 7th rank bonus, open file preference, avoid corners early
+// Rooks: 7th rank bonus
 const PST_ROOK_MG = [
   0, 0, 0, 0, 0, 0, 0, 0,
   5, 10, 10, 10, 10, 10, 10, 5,
@@ -69,8 +54,7 @@ const PST_ROOK_MG = [
   0, 0, 0, 5, 5, 0, 0, 0,
 ];
 
-// ---------- QUEEN ----------
-// Slight center preference, avoid edges
+// Queen
 const PST_QUEEN_MG = [
   -20, -10, -10, -5, -5, -10, -10, -20,
   -10, 0, 0, 0, 0, 0, 0, -10,
@@ -82,8 +66,7 @@ const PST_QUEEN_MG = [
   -20, -10, -10, -5, -5, -10, -10, -20,
 ];
 
-// ---------- KING MIDDLEGAME ----------
-// Stay castled (kingside/queenside), penalize center and open positions
+// King (middlegame) — stay castled, avoid center
 const PST_KING_MG = [
   -30, -40, -40, -50, -50, -40, -40, -30,
   -30, -40, -40, -50, -50, -40, -40, -30,
@@ -95,8 +78,7 @@ const PST_KING_MG = [
   20, 30, 10, 0, 0, 10, 30, 20,
 ];
 
-// ---------- KING ENDGAME ----------
-// Move to center, be active
+// King (endgame) — centralize
 const PST_KING_EG = [
   -50, -40, -30, -20, -20, -30, -40, -50,
   -30, -20, -10, 0, 0, -10, -20, -30,
@@ -108,10 +90,7 @@ const PST_KING_EG = [
   -50, -30, -30, -30, -30, -30, -30, -50,
 ];
 
-/**
- * Lookup maps keyed by piece type (lowercase).
- * King has separate middlegame and endgame tables.
- */
+
 const PST_MG = {
   p: PST_PAWN_MG,
   n: PST_KNIGHT_MG,
@@ -125,16 +104,13 @@ const PST_EG = {
   k: PST_KING_EG,
 };
 
-// ---------- Helpers ----------
-
-/*Convert a square string (e.g. "e4") to a 0-63 index, from White's perspective (a8=0, h1=63).*/
 function squareIndex(sq) {
-  const file = sq.charCodeAt(0) - 97; // a=0 … h=7
-  const rank = parseInt(sq[1], 10);   // 1-8
+  const file = sq.charCodeAt(0) - 97;
+  const rank = parseInt(sq[1], 10);
   return (8 - rank) * 8 + file;
 }
 
-/*Mirror an index vertically for Black's perspective*/
+// Mirror index for Black
 function mirrorIndex(idx) {
   const row = Math.floor(idx / 8);
   const col = idx % 8;
@@ -142,14 +118,7 @@ function mirrorIndex(idx) {
 }
 
 
-// Evaluation
-
-/**
- * Evaluate the position (White's perspective). 
- * Positive = White is better, Negative = Black is better.
- * @param {import('chess.js').Chess} game
- * @returns {number} centipawn score
- */
+// Positive = white is better, negative = black is better
 function evaluate(game) {
 
   if (game.isCheckmate()) {
@@ -167,7 +136,6 @@ function evaluate(game) {
   let whiteKingIdx = -1;
   let blackKingIdx = -1;
 
-  // Per-file pawn tracking for doubled/isolated detection
   const whitePawnsPerFile = new Array(8).fill(0);
   const blackPawnsPerFile = new Array(8).fill(0);
 
@@ -234,7 +202,7 @@ function evaluate(game) {
   if (whiteBishops >= 2) score += 50;
   if (blackBishops >= 2) score -= 50;
 
-  // Penalty for pawn structure
+  // Doubled and isolated pawn penalties
   for (let f = 0; f < 8; f++) {
     if (whitePawnsPerFile[f] > 1) score -= 20 * (whitePawnsPerFile[f] - 1);
     if (blackPawnsPerFile[f] > 1) score += 20 * (blackPawnsPerFile[f] - 1);
@@ -248,7 +216,6 @@ function evaluate(game) {
     if (blackPawnsPerFile[f] > 0 && !bHasAdj) score += 15 * blackPawnsPerFile[f];
   }
 
-  // Mobility bonus removed for performance.
   return score;
 }
 

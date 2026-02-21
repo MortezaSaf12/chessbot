@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-// Game statae
+// Game state
 
 let game = new Chess();
 let maxDepth = 6;
@@ -18,17 +18,17 @@ let maxDepth = 6;
 /** Build a standard game-status object. */
 function gameStatus() {
     const inCheck = game.isCheck();
-    const eval_ = evaluate(game);
+    const score = evaluate(game);
 
     if (!game.isGameOver()) {
-        return { gameOver: false, result: null, inCheck, evaluation: eval_ };
+        return { gameOver: false, result: null, inCheck, evaluation: score };
     }
 
     let result = "draw";
     if (game.isCheckmate()) {
         result = game.turn() === "w" ? "black_wins" : "white_wins";
     }
-    return { gameOver: true, result, inCheck, evaluation: eval_ };
+    return { gameOver: true, result, inCheck, evaluation: score };
 }
 
 /** Current full-move number (1-based). */
