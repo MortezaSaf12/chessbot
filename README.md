@@ -1,7 +1,7 @@
 # Chess Bot MVP
 ![CI Pipeline](https://github.com/MortezaSaf12/chessbot/actions/workflows/ci.yml/badge.svg)
 
-Ett schack-projekt byggt för att träna på att spela schack och utvecklas inom AI-programmering. Målet var att skapa en *schackmotor* (chess engine) i JavaScript som presterar väl upp till **Depth 6**, vilket är extremt utmanande i en webbläsare/Node-miljö.
+Ett schack-projekt byggt för att träna på att spela schack. Målet var att skapa en *schackmotor* (chess engine) i JavaScript som presterar väl upp till **Depth 6**, vilket är extremt utmanande i en webbläsare/Node-miljö.
 ## Funktioner (MVP)
 Detta är den minimala, fungerande versionen av projektet:
 * **Spelbar klient:** Ett elegant, mörkt GUI i webbläsaren för att spela mot motorn.
